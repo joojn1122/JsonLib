@@ -23,7 +23,11 @@ Get data type of value, opposite of to_string(json) function
 '''
 def get_value(value: str):
 	
-	if value == "null":
+	if value.startswith('"') and value.endswith('"'):
+
+		return value[1:-1]
+
+	elif value == "null":
 		return None
 
 	elif value == "true" or value == "false":
@@ -32,10 +36,6 @@ def get_value(value: str):
 	elif is_number(value):
 
 		return float(value) if "." in value else int(value)
-
-	elif value.startswith('"') and value.endswith('"'):
-
-		return value[1:-1]
 
 	else:
 
@@ -72,10 +72,8 @@ def parse_dict(string: str) -> dict:
 					value = ""
 
 				else:
-					dictonary[key] = value
 
-					value = ""
-					key = ""
+					value = f'"{value}"'
 
 			elif c != "\\":
 				value += c
@@ -177,6 +175,8 @@ def parse_list(string: str) -> list:
 			if c == '"' and last_char != "\\":
 				in_quotes = False
 
+				value += '"'
+
 			elif c != "\\":
 				value += c
 
@@ -217,6 +217,11 @@ def parse_list(string: str) -> list:
 				nested["close_bracket"] = "]"
 				nested["func"] = parse_list
 
+		elif c == '"':
+			in_quotes = True
+
+			value += '"'
+
 		elif c == "]":
 			if value != "":
 
@@ -228,7 +233,7 @@ def parse_list(string: str) -> list:
 
 			if value == "":
 				continue
-
+			
 			LIST.append(get_value(value))
 
 			value = ""
@@ -327,7 +332,9 @@ print(parse('''
 					"number" : 1,
 					"number_" : 1.23,
 					"null" : null
-				}
+				},
+				"123",
+				"1234"
 			]
 		}
 	}
